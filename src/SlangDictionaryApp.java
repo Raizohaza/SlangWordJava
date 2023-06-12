@@ -140,7 +140,7 @@ public class SlangDictionaryApp {
 
         SlangWord newSlangWord = new SlangWord(slangWord);
 
-        newSlangWord.addMeaning(1, meaning);
+        newSlangWord.addMeaning(1,meaning);
         slangDictionary.addSlangWord(newSlangWord);
         System.out.println("New slang word added successfully!");
     }
@@ -313,7 +313,7 @@ public class SlangDictionaryApp {
     public static void main(String[] args) {
         // Load slang data from a file into the SlangDictionary instance
         SlangDictionary slangDictionary = new SlangDictionary();
-        slangDictionary.loadDataFromFile("src/slang.txt");
+        slangDictionary.loadDataFromFile("slang.txt");
 
         // Create and show the SlangDictionaryUI
         SwingUtilities.invokeLater(() -> {
