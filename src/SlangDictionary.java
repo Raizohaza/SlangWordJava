@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,8 +7,9 @@ import java.util.Random;
 
 public class SlangDictionary {
     private Map<String, SlangWord> slangWords;
-
-    public SlangDictionary() {
+    private String filePath;
+    public SlangDictionary(String filePath) {
+        this.filePath = filePath;
         this.slangWords = new HashMap<>();
     }
 
@@ -72,6 +71,10 @@ public class SlangDictionary {
         return randomSlangWords;
     }
 
+    public void loadDataFromFile() {
+        loadDataFromFile(filePath);
+    }
+
     public void loadDataFromFile(String filePath) {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -87,8 +90,27 @@ public class SlangDictionary {
                     addSlangWord(slangWord);
                 }
             }
+            System.out.println(slangWords.size());
+            System.out.println("Slang words loaded successfully!");
         } catch (IOException e) {
             System.out.println("Error loading data from file: " + e.getMessage());
         }
+    }
+
+    public void saveToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (SlangWord slangWord : slangWords.values()) {
+                writer.write(slangWord.toString());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving slang dictionary to file: " + e.getMessage());
+        }
+    }
+
+    public void resetToDefault(String defaultFilePath) {
+        slangWords.clear();
+        loadDataFromFile(defaultFilePath);
+        saveToFile();
     }
 }

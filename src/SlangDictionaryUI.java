@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class SlangDictionaryUI {
+    private static final String SLANG_FILE_PATH = "slang.txt";
     private JFrame frame;
     private JTabbedPane tabbedPane;
     private JTextField searchField;
@@ -54,6 +55,9 @@ public class SlangDictionaryUI {
         JPanel addPanel = createAddPanel();
         tabbedPane.addTab("Add Word", addPanel);
 
+        JPanel randomPanel = createRandomPanel();
+        tabbedPane.addTab("Random Word", randomPanel);
+
         frame.getContentPane().add(tabbedPane);
     }
 
@@ -62,6 +66,9 @@ public class SlangDictionaryUI {
 
         searchField = new JTextField(20);
         JButton searchButton = new JButton("Search");
+        searchButton.setBackground(Color.BLUE);
+        JButton resetButton = new JButton("Reset");
+        resetButton.setBackground(Color.RED);
         tableModel = new DefaultTableModel();
         JTable searchTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(searchTable);
@@ -75,9 +82,26 @@ public class SlangDictionaryUI {
         inputPanel.add(new JLabel("Search Word:"));
         inputPanel.add(searchField);
         inputPanel.add(searchButton);
+        inputPanel.add(resetButton);
 
         panel.add(inputPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
+
+        resetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int choice = JOptionPane.showConfirmDialog(frame,
+                        "Are you sure you want to reset the dictionary to default?",
+                        "Reset Dictionary",
+                        JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    slangDictionary.resetToDefault("slang_default.txt");
+                    JOptionPane.showConfirmDialog(frame,
+                            "Dictionary reset to default.",
+                            "Notification",
+                            JOptionPane.CLOSED_OPTION);
+                }
+            }
+        });
 
         searchButton.addActionListener(new ActionListener() {
             @Override
@@ -129,6 +153,7 @@ public class SlangDictionaryUI {
                                 "Confirm Deletion", JOptionPane.YES_NO_OPTION);
                         if (result == JOptionPane.YES_OPTION) {
                             slangDictionary.deleteSlangWord(word);
+                            slangDictionary.saveToFile();
                             tableModel.removeRow(row);
                             JOptionPane.showMessageDialog(null, "Slang word deleted successfully!",
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -255,6 +280,7 @@ public class SlangDictionaryUI {
                         wordField.setText("");
                         meaningsArea.setText("");
                     }
+                    slangDictionary.saveToFile();
                 } else {
                     JOptionPane.showMessageDialog(frame, "Please fill in both word and meanings!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -264,12 +290,42 @@ public class SlangDictionaryUI {
         return panel;
     }
 
+    private JPanel createRandomPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        JLabel randomSlangWordLabel = new JLabel();
+        randomSlangWordLabel.setFont(randomSlangWordLabel.getFont().deriveFont(18f));
+        randomSlangWordLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(randomSlangWordLabel, BorderLayout.CENTER);
+
+        JButton generateButton = new JButton("Generate Random Slang Word");
+        generateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generateRandomSlangWord(randomSlangWordLabel);
+            }
+        });
+        panel.add(generateButton, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void generateRandomSlangWord(JLabel slangWordLabel) {
+        SlangWord randomSlangWord = slangDictionary.getRandomSlangWord();
+        if (randomSlangWord != null) {
+            slangWordLabel.setText(randomSlangWord.getWord()+ randomSlangWord.getAllMeanings());
+        } else {
+            slangWordLabel.setText("No slang words available.");
+        }
+    }
+
     public void show() {
         frame.setVisible(true);
     }
 
     public static void main(String[] args) {
-        SlangDictionary slangDictionary = new SlangDictionary();
+        SlangDictionary slangDictionary = new SlangDictionary(SLANG_FILE_PATH);
         SlangDictionaryUI slangDictionaryUI = new SlangDictionaryUI(slangDictionary);
         slangDictionaryUI.show();
     }

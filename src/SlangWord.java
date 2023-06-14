@@ -31,7 +31,7 @@ public class SlangWord {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(word).append(": ");
+        sb.append(word).append("` ");
         for (int i = 1; i <= meanings.size(); i++) {
             sb.append(meanings.get(i));
             if (i < meanings.size()) {

@@ -2,14 +2,14 @@ import javax.swing.*;
 import java.util.*;
 
 public class SlangDictionaryApp {
-    private static final String SLANG_FILE_PATH = "src/slang.txt";
+    private static final String SLANG_FILE_PATH = "slang.txt";
 
     private SlangDictionary slangDictionary;
     private Set<String> searchHistory;
     private Random random;
 
     public SlangDictionaryApp() {
-        slangDictionary = new SlangDictionary();
+        slangDictionary = new SlangDictionary(SLANG_FILE_PATH);
         searchHistory = new LinkedHashSet<>();
         random = new Random();
     }
@@ -71,7 +71,7 @@ public class SlangDictionaryApp {
 
     private void loadSlangWords() {
         System.out.println("Loading slang words from file...");
-        slangDictionary.loadDataFromFile(SLANG_FILE_PATH);
+        slangDictionary.loadDataFromFile();
         System.out.println("Slang words loaded successfully!");
     }
 
@@ -312,8 +312,9 @@ public class SlangDictionaryApp {
 
     public static void main(String[] args) {
         // Load slang data from a file into the SlangDictionary instance
-        SlangDictionary slangDictionary = new SlangDictionary();
-        slangDictionary.loadDataFromFile("slang.txt");
+        SlangDictionary slangDictionary = new SlangDictionary(SLANG_FILE_PATH);
+        System.out.println("Loading slang words from file...");
+        slangDictionary.loadDataFromFile();
 
         // Create and show the SlangDictionaryUI
         SwingUtilities.invokeLater(() -> {
