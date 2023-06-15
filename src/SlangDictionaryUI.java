@@ -174,7 +174,21 @@ public class SlangDictionaryUI {
             }
         });
 
-
+        // Add TableModelListener to detect changes in the table model
+        tableModel.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                int row = e.getFirstRow();
+                int column = e.getColumn();
+                if (column == 1) {
+                    String slangWord = (String) tableModel.getValueAt(row, 0);
+                    List<String> meanings = new ArrayList<>();
+                    meanings.add((String) tableModel.getValueAt(row, 1));
+                    slangDictionary.updateSlangWord(slangDictionary.searchBySlangWord(slangWord), slangWord, meanings);
+                    slangDictionary.saveToFile();
+                }
+            }
+        });
 
         return panel;
     }
