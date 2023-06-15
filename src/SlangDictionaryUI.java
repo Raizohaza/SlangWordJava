@@ -1,21 +1,20 @@
-import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+//import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 
 public class SlangDictionaryUI {
     private static final String SLANG_FILE_PATH = "slang.txt";
@@ -32,11 +31,11 @@ public class SlangDictionaryUI {
         this.slangDictionary = slangDictionary;
         this.searchHistory = new ArrayList<>();
 
-        try {
-            UIManager.setLookAndFeel(new FlatMacDarkLaf());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+//        try {
+//            UIManager.setLookAndFeel(new FlatMacDarkLaf());
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
 
         frame = new JFrame("Slang Dictionary");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -58,6 +57,11 @@ public class SlangDictionaryUI {
         JPanel randomPanel = createRandomPanel();
         tabbedPane.addTab("Random Word", randomPanel);
 
+        JPanel quizPanel = createQuizPanel();
+        tabbedPane.addTab("Quiz Slang", quizPanel);
+
+
+
         frame.getContentPane().add(tabbedPane);
     }
 
@@ -69,7 +73,13 @@ public class SlangDictionaryUI {
         searchButton.setBackground(Color.BLUE);
         JButton resetButton = new JButton("Reset");
         resetButton.setBackground(Color.RED);
-        tableModel = new DefaultTableModel();
+        tableModel = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                // Disable editing for the Slang Word column (column index 0) and the Delete column (column index 2)
+                return column != 0 && column != 2;
+            }
+        };
         JTable searchTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(searchTable);
 
@@ -120,14 +130,14 @@ public class SlangDictionaryUI {
 
                 // Add search results to the table model
                 for (SlangWord slangWord : searchResultsBySlangWords) {
-                    for (String meaning:slangWord.getAllMeanings()) {
+                    for (String meaning : slangWord.getAllMeanings()) {
                         tableModel.addRow(new Object[]{slangWord.getWord(), meaning, "Delete"});
 
                     }
                 }
 
                 for (SlangWord slangWord : searchResultsByDefinition) {
-                    for (String meaning:slangWord.getAllMeanings()) {
+                    for (String meaning : slangWord.getAllMeanings()) {
                         tableModel.addRow(new Object[]{slangWord.getWord(), meaning, "Delete"});
 
                     }
@@ -162,6 +172,8 @@ public class SlangDictionaryUI {
                 }
             }
         });
+
+
 
         return panel;
     }
@@ -290,6 +302,7 @@ public class SlangDictionaryUI {
         return panel;
     }
 
+
     private JPanel createRandomPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -311,10 +324,69 @@ public class SlangDictionaryUI {
         return panel;
     }
 
+    public JPanel createQuizPanel() {
+        JPanel masterPanel = new JPanel(new GridLayout(2, 1));
+        masterPanel.setPreferredSize(new Dimension(400, 200));
+        JPanel quizPanel = new JPanel(new GridLayout(2, 2));
+        List<SlangWord> randomSlangWords = slangDictionary.getRandomSlangWords(4);
+        SlangWord correctSlangWord = randomSlangWords.get(0);
+
+        JButton[] answerButtons = new JButton[4];
+
+        for (int i = 0; i < 4; i++) {
+            JButton button = new JButton();
+            button.setText(randomSlangWords.get(i).getAllMeanings().get(0));
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JButton clickedButton = (JButton) e.getSource();
+                    System.out.println(clickedButton.getText());
+                    if (clickedButton.getText().equals(correctSlangWord.getMeaning(1))) {
+                        JOptionPane.showMessageDialog(null, "Correct!");
+                        // Notify the tabbedPane to create a new quizPanel
+                        int index = tabbedPane.indexOfTab("Quiz Slang");
+                        if (index != -1) {
+                            tabbedPane.remove(index);
+                            JPanel quizPanel = createQuizPanel();
+                            tabbedPane.addTab("Quiz Slang", quizPanel);
+                            tabbedPane.setSelectedIndex(index);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect! Try again.");
+                    }
+                }
+            });
+            answerButtons[i] = button;
+        }
+
+        // Randomize the answer buttons' positions
+        for (int i = 3; i > 0; i--) {
+            int randIndex = (int) (Math.random() * (i + 1));
+            JButton temp = answerButtons[i];
+            answerButtons[i] = answerButtons[randIndex];
+            answerButtons[randIndex] = temp;
+        }
+
+        JLabel wordLabel = new JLabel("Guess the meaning of: " + correctSlangWord.getWord());
+        Font labelFont = wordLabel.getFont();
+        wordLabel.setFont(labelFont.deriveFont(labelFont.getSize() + 16f));
+
+        masterPanel.add(wordLabel);
+        // Add the answer buttons to the quiz panel
+        for (JButton button : answerButtons) {
+            quizPanel.add(button);
+        }
+
+        masterPanel.add(quizPanel);
+        return masterPanel;
+    }
+
+
+
     private void generateRandomSlangWord(JLabel slangWordLabel) {
         SlangWord randomSlangWord = slangDictionary.getRandomSlangWord();
         if (randomSlangWord != null) {
-            slangWordLabel.setText(randomSlangWord.getWord()+ randomSlangWord.getAllMeanings());
+            slangWordLabel.setText(randomSlangWord.getWord() + randomSlangWord.getAllMeanings());
         } else {
             slangWordLabel.setText("No slang words available.");
         }
@@ -326,6 +398,7 @@ public class SlangDictionaryUI {
 
     public static void main(String[] args) {
         SlangDictionary slangDictionary = new SlangDictionary(SLANG_FILE_PATH);
+        slangDictionary.loadDataFromFile();
         SlangDictionaryUI slangDictionaryUI = new SlangDictionaryUI(slangDictionary);
         slangDictionaryUI.show();
     }

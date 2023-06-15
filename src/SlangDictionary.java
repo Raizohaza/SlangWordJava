@@ -43,6 +43,29 @@ public class SlangDictionary {
         slangWords.clear();
     }
 
+    public String getMeaning(String word) {
+        SlangWord slangWord = slangWords.get(word);
+        if (slangWord != null) {
+            // Get the first meaning
+            return slangWord.getMeaning(1);
+        }
+        return null;
+    }
+
+    public void updateSlangWord(SlangWord slangWord, String newWord, List<String> newMeanings) {
+        slangWords.remove(slangWord.getWord()); // Remove the old slang word
+
+        // Create a new SlangWord with the updated values
+        SlangWord updatedSlangWord = new SlangWord(newWord);
+        for (int i = 0; i < newMeanings.size(); i++) {
+            updatedSlangWord.addMeaning(i + 1, newMeanings.get(i));
+        }
+
+        // Add the updated SlangWord to the dictionary
+        slangWords.put(updatedSlangWord.getWord(), updatedSlangWord);
+    }
+
+
     public SlangWord getRandomSlangWord() {
         if (slangWords.isEmpty()) {
             return null;
@@ -113,4 +136,5 @@ public class SlangDictionary {
         loadDataFromFile(defaultFilePath);
         saveToFile();
     }
+
 }
