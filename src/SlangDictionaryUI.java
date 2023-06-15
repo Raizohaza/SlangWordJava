@@ -60,7 +60,8 @@ public class SlangDictionaryUI {
         JPanel quizPanel = createQuizPanel();
         tabbedPane.addTab("Quiz Slang", quizPanel);
 
-
+        JPanel quizMeaningPanel = createQuizMeaningPanel();
+        tabbedPane.addTab("Quiz Meaning", quizMeaningPanel);
 
         frame.getContentPane().add(tabbedPane);
     }
@@ -381,7 +382,62 @@ public class SlangDictionaryUI {
         return masterPanel;
     }
 
+    public JPanel createQuizMeaningPanel() {
+        JPanel masterPanel = new JPanel(new GridLayout(2, 1));
+        masterPanel.setPreferredSize(new Dimension(400, 200));
+        JPanel quizPanel = new JPanel(new GridLayout(2, 2));
+        List<SlangWord> randomSlangWords = slangDictionary.getRandomSlangWords(4);
+        SlangWord correctSlangWord = randomSlangWords.get(0);
 
+        JButton[] answerButtons = new JButton[4];
+
+        for (int i = 0; i < 4; i++) {
+            JButton button = new JButton();
+            button.setText(randomSlangWords.get(i).getWord());
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JButton clickedButton = (JButton) e.getSource();
+                    System.out.println(clickedButton.getText());
+                    if (clickedButton.getText().equals(correctSlangWord.getWord())) {
+                        JOptionPane.showMessageDialog(null, "Correct!");
+                        // Notify the tabbedPane to create a new quizMeaningPanel
+                        int index = tabbedPane.indexOfTab("Quiz Meaning");
+                        if (index != -1) {
+                            tabbedPane.remove(index);
+                            JPanel quizMeaningPanel = createQuizMeaningPanel();
+                            tabbedPane.addTab("Quiz Meaning", quizMeaningPanel);
+                            tabbedPane.setSelectedIndex(index);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Incorrect! Try again.");
+                    }
+                }
+            });
+            answerButtons[i] = button;
+        }
+
+        // Randomize the answer buttons' positions
+        for (int i = 3; i > 0; i--) {
+            int randIndex = (int) (Math.random() * (i + 1));
+            JButton temp = answerButtons[i];
+            answerButtons[i] = answerButtons[randIndex];
+            answerButtons[randIndex] = temp;
+        }
+
+        JLabel meaningLabel = new JLabel("Guess the slang word for: " + correctSlangWord.getMeaning(1));
+        Font labelFont = meaningLabel.getFont();
+        meaningLabel.setFont(labelFont.deriveFont(labelFont.getSize() + 16f));
+
+        masterPanel.add(meaningLabel);
+        // Add the answer buttons to the quiz panel
+        for (JButton button : answerButtons) {
+            quizPanel.add(button);
+        }
+
+        masterPanel.add(quizPanel);
+        return masterPanel;
+    }
 
     private void generateRandomSlangWord(JLabel slangWordLabel) {
         SlangWord randomSlangWord = slangDictionary.getRandomSlangWord();
