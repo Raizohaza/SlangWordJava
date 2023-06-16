@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
@@ -18,11 +19,10 @@ import java.util.List;
 
 public class SlangDictionaryUI {
     private static final String SLANG_FILE_PATH = "slang.txt";
+    private String HISTORY_FILE_PATH = "history.txt";
     private JFrame frame;
     private JTabbedPane tabbedPane;
     private JTextField searchField;
-    private JButton searchButton;
-    private JButton addButton;
     private SlangDictionary slangDictionary;
     private List<String> searchHistory;
     private DefaultTableModel tableModel;
@@ -30,6 +30,7 @@ public class SlangDictionaryUI {
     public SlangDictionaryUI(SlangDictionary slangDictionary) {
         this.slangDictionary = slangDictionary;
         this.searchHistory = new ArrayList<>();
+        loadSearchHistoryFromFile();
 
 //        try {
 //            UIManager.setLookAndFeel(new FlatMacDarkLaf());
@@ -146,6 +147,7 @@ public class SlangDictionaryUI {
 
                 String historyEntry = searchWord + ":" + System.currentTimeMillis();
                 searchHistory.add(historyEntry);
+                saveSearchHistoryToFile();
             }
         });
 
@@ -193,6 +195,28 @@ public class SlangDictionaryUI {
         return panel;
     }
 
+    private void saveSearchHistoryToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH))) {
+            for (String entry : searchHistory) {
+                writer.write(entry);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving search history to file: " + e.getMessage());
+        }
+    }
+
+    private void loadSearchHistoryFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                searchHistory.add(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading search history from file: " + e.getMessage());
+        }
+    }
+
     private JPanel createHistoryPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -212,28 +236,39 @@ public class SlangDictionaryUI {
                     historyTableModel.setRowCount(0);
 
                     // Add search history entries to the table model
-                    for (String historyEntry : searchHistory) {
-                        String[] entryParts = historyEntry.split(":");
-                        if (entryParts.length >= 2) {
-                            String searchWord = entryParts[0];
-                            String timestamp = entryParts[1];
-
-                            // Format the timestamp into a readable format
-                            long timestampMillis = Long.parseLong(timestamp);
-                            Date date = new Date(timestampMillis);
-                            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                            String formattedTimestamp = format.format(date);
-
-                            historyTableModel.addRow(new Object[]{searchWord, formattedTimestamp});
-                        }
-                    }
+                    // Load search history from file
+                    loadSearchHistoryFromFile(historyTableModel);
                 }
             }
         });
 
+
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    private void loadSearchHistoryFromFile(DefaultTableModel historyTableModel) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] entryParts = line.split(":");
+                if (entryParts.length >= 2) {
+                    String searchWord = entryParts[0];
+                    String timestamp = entryParts[1];
+
+                    // Format the timestamp into a readable format
+                    long timestampMillis = Long.parseLong(timestamp);
+                    java.util.Date date = new java.util.Date(timestampMillis);
+                    java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedTimestamp = format.format(date);
+
+                    historyTableModel.addRow(new Object[]{searchWord, formattedTimestamp});
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading search history from file: " + e.getMessage());
+        }
     }
 
     private JPanel createAddPanel() {

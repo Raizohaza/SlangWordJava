@@ -105,7 +105,7 @@ public class SlangDictionary {
                 String[] parts = line.split("`");
                 if (parts.length >= 2) {
                     String word = parts[0];
-                    String[] meanings = parts[1].split("\\|");
+                    String[] meanings = parts[1].split("\\| ");
                     SlangWord slangWord = new SlangWord(word);
                     for (int i = 0; i < meanings.length; i++) {
                         slangWord.addMeaning(i + 1, meanings[i]);
