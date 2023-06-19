@@ -125,7 +125,7 @@ public class SlangDictionaryUI {
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String searchWord = searchField.getText();
+                String searchWord = searchField.getText().trim();
 
                 SlangWord searchResults = slangDictionary.searchBySlangWord(searchWord);
                 List<SlangWord> searchResultsBySlangWords = new ArrayList<>();
@@ -151,10 +151,14 @@ public class SlangDictionaryUI {
 
                     }
                 }
+// Check if the search word contains spaces or non-visible characters using regex
+                System.out.println("("+  searchWord.getClass().getName() + ")");
+                if (!searchWord.isEmpty()) {
+                    String historyEntry = searchWord + ":" + System.currentTimeMillis();
+                    searchHistory.add(historyEntry);
+                    saveSearchHistoryToFile();
+                }
 
-                String historyEntry = searchWord + ":" + System.currentTimeMillis();
-                searchHistory.add(historyEntry);
-                saveSearchHistoryToFile();
             }
         });
 
