@@ -79,8 +79,8 @@ public class SlangDictionaryUI {
         tableModel = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
-                // Disable editing for the Slang Word column (column index 0) and the Delete column (column index 2)
-                return column != 0 && column != 2;
+                // Disable editing for the Slang Word column (column index 0), Delete column (column index 2), and Edit column (column index 3)
+                return column != 0 && column != 2 && column != 3;
             }
         };
         JTable searchTable = new JTable(tableModel);
@@ -89,7 +89,8 @@ public class SlangDictionaryUI {
         // Add columns to the table model
         tableModel.addColumn("Slang Word");
         tableModel.addColumn("Definition");
-        tableModel.addColumn(""); // Empty column for delete button
+        tableModel.addColumn("Delete");
+        tableModel.addColumn("Edit");
 
         JPanel inputPanel = new JPanel(new FlowLayout());
         inputPanel.add(new JLabel("Search Word:"));
@@ -100,6 +101,7 @@ public class SlangDictionaryUI {
         panel.add(inputPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
         searchButton.doClick();
+
         resetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int choice = JOptionPane.showConfirmDialog(frame,
@@ -122,6 +124,7 @@ public class SlangDictionaryUI {
                 searchButton.doClick(); // Simulate click on searchButton
             }
         });
+
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -140,19 +143,18 @@ public class SlangDictionaryUI {
                 // Add search results to the table model
                 for (SlangWord slangWord : searchResultsBySlangWords) {
                     for (String meaning : slangWord.getAllMeanings()) {
-                        tableModel.addRow(new Object[]{slangWord.getWord(), meaning, "Delete"});
-
+                        tableModel.addRow(new Object[]{slangWord.getWord(), meaning, "Delete", "Edit"});
                     }
                 }
 
                 for (SlangWord slangWord : searchResultsByDefinition) {
                     for (String meaning : slangWord.getAllMeanings()) {
-                        tableModel.addRow(new Object[]{slangWord.getWord(), meaning, "Delete"});
-
+                        tableModel.addRow(new Object[]{slangWord.getWord(), meaning, "Delete", "Edit"});
                     }
                 }
-// Check if the search word contains spaces or non-visible characters using regex
-                System.out.println("("+  searchWord.getClass().getName() + ")");
+
+                // Check if the search word contains spaces or non-visible characters using regex
+                System.out.println("(" + searchWord.getClass().getName() + ")");
                 if (!searchWord.isEmpty()) {
                     String historyEntry = searchWord + ":" + System.currentTimeMillis();
                     searchHistory.add(historyEntry);
@@ -183,22 +185,43 @@ public class SlangDictionaryUI {
                                     "Success", JOptionPane.INFORMATION_MESSAGE);
                         }
                     }
-                }
-            }
-        });
-
-        // Add TableModelListener to detect changes in the table model
-        tableModel.addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                int row = e.getFirstRow();
-                int column = e.getColumn();
-                if (column == 1) {
+                } else if (col == 3) { // Edit button column
                     String slangWord = (String) tableModel.getValueAt(row, 0);
-                    List<String> meanings = new ArrayList<>();
-                    meanings.add((String) tableModel.getValueAt(row, 1));
-                    slangDictionary.updateSlangWord(slangDictionary.searchBySlangWord(slangWord), slangWord, meanings);
-                    slangDictionary.saveToFile();
+                    SlangWord word = slangDictionary.searchBySlangWord(slangWord);
+                    if (word != null) {
+
+                            // Open a dialog to allow editing the slang word and definitions
+                            JPanel editPanel = new JPanel(new BorderLayout());
+                            JTextField slangWordField = new JTextField(word.getWord(), 20);
+                            JTextArea definitionArea = new JTextArea(5, 20);
+                            JScrollPane scrollPane = new JScrollPane(definitionArea);
+                            definitionArea.setText(String.join("\n", word.getAllMeanings()));
+                            definitionArea.setLineWrap(true);
+                            definitionArea.setWrapStyleWord(true);
+
+                            editPanel.add(new JLabel("Slang Word:"), BorderLayout.NORTH);
+                            editPanel.add(slangWordField, BorderLayout.CENTER);
+                            editPanel.add(new JLabel("Definitions:"), BorderLayout.SOUTH);
+                            editPanel.add(scrollPane, BorderLayout.SOUTH);
+
+                            int option = JOptionPane.showConfirmDialog(frame, editPanel, "Edit Slang Word", JOptionPane.OK_CANCEL_OPTION);
+                            if (option == JOptionPane.OK_OPTION) {
+                                String newSlangWord = slangWordField.getText().trim();
+                                String[] definitions = definitionArea.getText().split("\n");
+
+                                if (!newSlangWord.isEmpty() && definitions.length > 0) {
+                                    List<String> meanings = Arrays.asList(definitions);
+                                    slangDictionary.updateSlangWord(word, newSlangWord, meanings);
+                                    slangDictionary.saveToFile();
+                                    tableModel.setValueAt(newSlangWord, row, 0);
+                                    // Update the definitions in the table
+                                    for (int i = 0; i < meanings.size(); i++) {
+                                        tableModel.setValueAt(meanings.get(i), row + i, 1);
+                                    }
+                                }
+                            }
+
+                    }
                 }
             }
         });
