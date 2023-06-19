@@ -26,6 +26,7 @@ public class SlangDictionaryUI {
     private SlangDictionary slangDictionary;
     private List<String> searchHistory;
     private DefaultTableModel tableModel;
+    JButton searchButton;
 
     public SlangDictionaryUI(SlangDictionary slangDictionary) {
         this.slangDictionary = slangDictionary;
@@ -98,7 +99,7 @@ public class SlangDictionaryUI {
 
         panel.add(inputPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
-
+        searchButton.doClick();
         resetButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int choice = JOptionPane.showConfirmDialog(frame,
@@ -115,6 +116,12 @@ public class SlangDictionaryUI {
             }
         });
 
+        searchField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                searchButton.doClick(); // Simulate click on searchButton
+            }
+        });
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -191,7 +198,7 @@ public class SlangDictionaryUI {
                 }
             }
         });
-
+        searchButton.doClick();
         return panel;
     }
 
