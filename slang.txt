@@ -1,4 +1,4 @@
-BBC`British Broadcasting Corporation| Big b c
+BBC`British Broadcasting Corporation
 BBB`Bugging Beyond Belief
 BBE`Babe
 GLOTR`Good Luck On The Rebuild
@@ -1868,7 +1868,7 @@ PE`Physical Education
 DVI`Digital Visual Interface
 PG`Parental Guidance
 PH`Pantyhose
-PI`Greek letter r| number
+PI`Greek letter| number
 PJ`Poor Joke| Cheap alcoholic beverage
 TIEM`time
 LAMP`Hit
